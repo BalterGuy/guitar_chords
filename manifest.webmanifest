@@ -1,0 +1,10 @@
+{
+  "name":"אקורדים לגיטרה קלאסית",
+  "short_name":"אקורדים",
+  "start_url":"./",
+  "display":"standalone",
+  "background_color":"#f4f6f7",
+  "theme_color":"#0b5e83",
+  "lang":"he",
+  "dir":"rtl"
+}
