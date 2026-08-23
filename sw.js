@@ -1,5 +1,5 @@
-const CACHE='guitar-chords-v5-1';
-const ASSETS=['./','./index.html','./style.css?v=5.1','./app.js?v=5.1','./manifest.webmanifest'];
+const CACHE='guitar-chords-v5-2';
+const ASSETS=['./','./index.html','./style.css?v=5.2','./app.js?v=5.2','./manifest.webmanifest','./icon-192.png','./icon-512.png','./apple-touch-icon.png'];
 
 self.addEventListener('install',e=>{
   self.skipWaiting();
