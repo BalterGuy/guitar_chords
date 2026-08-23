@@ -1,5 +1,5 @@
-const CACHE='guitar-chords-v5';
-const ASSETS=['./','./index.html','./style.css?v=5','./app.js?v=5','./manifest.webmanifest'];
+const CACHE='guitar-chords-v5-1';
+const ASSETS=['./','./index.html','./style.css?v=5.1','./app.js?v=5.1','./manifest.webmanifest'];
 
 self.addEventListener('install',e=>{
   self.skipWaiting();

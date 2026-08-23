@@ -131,7 +131,7 @@ function drawDiagram(v){
   const svg=document.querySelector('#diagram');svg.innerHTML='';
   const NS='http://www.w3.org/2000/svg'; const add=(tag,attrs,text)=>{const e=document.createElementNS(NS,tag);Object.entries(attrs).forEach(([k,val])=>e.setAttribute(k,val));if(text!==undefined)e.textContent=text;svg.appendChild(e);return e};
   const x0=55,xGap=46,yTop=70,yGap=62;
-  const sx=s=>x0+(5-s)*xGap;
+  const sx=s=>x0+s*xGap;
   const active=v.frets.filter(f=>f>0); let start=1;if(active.length && Math.max(...active)>5) start=Math.min(...active);
   if(start>1)add('text',{x:25,y:yTop+37,'font-size':16,'font-weight':700},`${start}fr`);
   for(let s=0;s<6;s++)add('line',{x1:sx(s),y1:yTop,x2:sx(s),y2:yTop+4*yGap,stroke:'#40515b','stroke-width':2});
@@ -165,8 +165,8 @@ function drawDiagram(v){
       const rel=fret-start+1;if(rel>=1&&rel<=4){const cy=yTop+(rel-.5)*yGap;add('circle',{cx:x,cy,r:18,fill:'#0b5e83'});add('text',{x,y:cy+6,'text-anchor':'middle','font-size':16,'font-weight':800,fill:'#fff'},String(v.f[s]||''));}
     }
   }
-  add('text',{x:sx(5),y:382,'text-anchor':'middle','font-size':13,'font-weight':700,fill:'#9aa6ad'},'1');
   add('text',{x:sx(0),y:382,'text-anchor':'middle','font-size':13,'font-weight':700,fill:'#9aa6ad'},'6');
+  add('text',{x:sx(5),y:382,'text-anchor':'middle','font-size':13,'font-weight':700,fill:'#9aa6ad'},'1');
 }
 
 // Guitar-like synthesized sound, designed to work reliably on iPhone/iPad PWAs.
