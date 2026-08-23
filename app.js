@@ -4,6 +4,7 @@ const ROOTS = [
   {label:'G♯ / A♭',pc:8},{label:'A',pc:9},{label:'A♯ / B♭',pc:10},{label:'B',pc:11}
 ];
 const NAMES_SHARP=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const ITALIAN_ROOTS=['Do','Do diesis','Re','Re diesis','Mi','Fa','Fa diesis','Sol','Sol diesis','La','La diesis','Si'];
 const QUALITIES=[
   {id:'maj',suffix:''},{id:'min',suffix:'m'},
   {id:'7',suffix:'7'},{id:'m7',suffix:'m7'},
@@ -116,10 +117,11 @@ function renderChord(){
 function drawCurrent(){
   const name=chordDisplayName(), v=voicings[voicingIndex];
   document.querySelector('#chordName').textContent=name;
+  document.querySelector('#rootItalian').textContent=ITALIAN_ROOTS[selectedRoot.pc];
   document.querySelector('#voicingCounter').textContent=`${voicingIndex+1} / ${voicings.length}`;
   document.querySelector('#prevVoicing').disabled=voicingIndex===0;
   document.querySelector('#nextVoicing').disabled=voicingIndex===voicings.length-1;
-  drawDiagram(v);renderInstructions(v);renderFavStar(name)
+  drawDiagram(v);renderFavStar(name)
 }
 
 document.querySelector('#prevVoicing').onclick=()=>{if(voicingIndex>0){voicingIndex--;drawCurrent()}};
@@ -129,9 +131,10 @@ function drawDiagram(v){
   const svg=document.querySelector('#diagram');svg.innerHTML='';
   const NS='http://www.w3.org/2000/svg'; const add=(tag,attrs,text)=>{const e=document.createElementNS(NS,tag);Object.entries(attrs).forEach(([k,val])=>e.setAttribute(k,val));if(text!==undefined)e.textContent=text;svg.appendChild(e);return e};
   const x0=55,xGap=46,yTop=70,yGap=62;
+  const sx=s=>x0+(5-s)*xGap;
   const active=v.frets.filter(f=>f>0); let start=1;if(active.length && Math.max(...active)>5) start=Math.min(...active);
   if(start>1)add('text',{x:25,y:yTop+37,'font-size':16,'font-weight':700},`${start}fr`);
-  for(let s=0;s<6;s++)add('line',{x1:x0+s*xGap,y1:yTop,x2:x0+s*xGap,y2:yTop+4*yGap,stroke:'#40515b','stroke-width':2});
+  for(let s=0;s<6;s++)add('line',{x1:sx(s),y1:yTop,x2:sx(s),y2:yTop+4*yGap,stroke:'#40515b','stroke-width':2});
   for(let i=0;i<=4;i++)add('line',{x1:x0,y1:yTop+i*yGap,x2:x0+5*xGap,y2:yTop+i*yGap,stroke:'#40515b','stroke-width':i===0&&start===1?8:2});
 
   // Detect repeated finger 1 on the same fret and draw it as one continuous barre.
@@ -145,9 +148,9 @@ function drawDiagram(v){
       const minS=Math.min(...same),maxS=Math.max(...same),rel=fret-start+1;
       if(rel>=1&&rel<=4){
         const cy=yTop+(rel-.5)*yGap;
-        add('line',{x1:x0+minS*xGap,x2:x0+maxS*xGap,y1:cy,y2:cy,stroke:'#0b5e83','stroke-width':36,'stroke-linecap':'round'});
-        add('text',{x:x0+minS*xGap,y:cy+6,'text-anchor':'middle','font-size':16,'font-weight':800,fill:'#fff'},'1');
-        if(maxS!==minS)add('text',{x:x0+maxS*xGap,y:cy+6,'text-anchor':'middle','font-size':16,'font-weight':800,fill:'#fff'},'1');
+        add('line',{x1:sx(minS),x2:sx(maxS),y1:cy,y2:cy,stroke:'#0b5e83','stroke-width':36,'stroke-linecap':'round'});
+        add('text',{x:sx(minS),y:cy+6,'text-anchor':'middle','font-size':16,'font-weight':800,fill:'#fff'},'1');
+        if(maxS!==minS)add('text',{x:sx(maxS),y:cy+6,'text-anchor':'middle','font-size':16,'font-weight':800,fill:'#fff'},'1');
         barre={fret,strings:new Set(same)};
       }
     }
@@ -155,44 +158,82 @@ function drawDiagram(v){
 
   const stringNames=['E','A','D','G','B','E'];
   for(let s=0;s<6;s++){
-    const fret=v.frets[s], x=x0+s*xGap;
+    const fret=v.frets[s], x=sx(s);
     add('text',{x,y:53,'text-anchor':'middle','font-size':18,'font-weight':700,fill:fret===-1?'#9a3a3a':'#40515b'},fret===-1?'×':fret===0?'○':'');
     add('text',{x,y:350,'text-anchor':'middle','font-size':15,fill:'#75858f'},stringNames[s]);
     if(fret>0 && !(barre && barre.fret===fret && barre.strings.has(s))){
       const rel=fret-start+1;if(rel>=1&&rel<=4){const cy=yTop+(rel-.5)*yGap;add('circle',{cx:x,cy,r:18,fill:'#0b5e83'});add('text',{x,y:cy+6,'text-anchor':'middle','font-size':16,'font-weight':800,fill:'#fff'},String(v.f[s]||''));}
     }
   }
-  add('text',{x:170,y:392,'text-anchor':'middle','font-size':14,fill:'#75858f'},'מיתר 6 ←        → מיתר 1');
+  add('text',{x:sx(5),y:382,'text-anchor':'middle','font-size':13,'font-weight':700,fill:'#9aa6ad'},'1');
+  add('text',{x:sx(0),y:382,'text-anchor':'middle','font-size':13,'font-weight':700,fill:'#9aa6ad'},'6');
 }
 
-// Lightweight synthesized plucked-string sound. No audio files are required, so it also works offline.
+// Guitar-like synthesized sound, designed to work reliably on iPhone/iPad PWAs.
 let audioCtx=null;
+function getAudioContext(){
+  const Ctx=window.AudioContext||window.webkitAudioContext;
+  if(!Ctx) return null;
+  if(!audioCtx) audioCtx=new Ctx();
+  return audioCtx;
+}
 function fretFrequency(stringIndex,fret){
   const midiOpen=[40,45,50,55,59,64]; // E2 A2 D3 G3 B3 E4
   return 440*Math.pow(2,(midiOpen[stringIndex]+fret-69)/12);
 }
-function pluck(freq,when){
-  audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();
-  const ctx=audioCtx, duration=1.8, length=Math.max(2,Math.round(ctx.sampleRate/freq));
-  const buffer=ctx.createBuffer(1,Math.ceil(ctx.sampleRate*duration),ctx.sampleRate), data=buffer.getChannelData(0);
-  const ring=new Float32Array(length); for(let i=0;i<length;i++)ring[i]=Math.random()*2-1;
-  let idx=0; for(let i=0;i<data.length;i++){const next=(idx+1)%length;ring[idx]=0.496*(ring[idx]+ring[next]);data[i]=ring[idx]*Math.exp(-2.2*i/data.length);idx=next;}
-  const src=ctx.createBufferSource(), gain=ctx.createGain(); src.buffer=buffer; gain.gain.setValueAtTime(.32,when); gain.gain.exponentialRampToValueAtTime(.001,when+duration); src.connect(gain).connect(ctx.destination);src.start(when);src.stop(when+duration);
-}
-async function playCurrentChord(){
-  const v=voicings[voicingIndex]; if(!v)return;
-  audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)(); if(audioCtx.state==='suspended')await audioCtx.resume();
-  const t=audioCtx.currentTime+.03; let n=0;
-  v.frets.forEach((f,i)=>{if(f>=0){pluck(fretFrequency(i,f),t+n*.065);n++;}});
-}
-document.querySelector('#playChord').onclick=playCurrentChord;
+function synthString(ctx,freq,when,volume=.18){
+  // A small harmonic stack gives a plucked-string character while remaining
+  // much more reliable on iOS than dynamically generated noise buffers.
+  const master=ctx.createGain();
+  master.gain.setValueAtTime(0.0001,when);
+  master.gain.exponentialRampToValueAtTime(volume,when+0.008);
+  master.gain.exponentialRampToValueAtTime(0.0001,when+1.55);
+  master.connect(ctx.destination);
 
-function renderInstructions(v){
-  const names=['6 (מי נמוך)','5 (לה)','4 (רה)','3 (סול)','2 (סי)','1 (מי גבוה)'];
-  const items=[];
-  v.frets.forEach((fr,i)=>{if(fr===-1)items.push(`מיתר ${names[i]}: לא לנגן`);else if(fr===0)items.push(`מיתר ${names[i]}: פתוח`);else items.push(`מיתר ${names[i]}: סריג <b>${fr}</b>, אצבע <b>${v.f[i]||'–'}</b>`)});
-  document.querySelector('#instructions').innerHTML=items.join('<br>');
+  const harmonics=[
+    [1,1.0,'triangle'],
+    [2,0.28,'sine'],
+    [3,0.12,'sine']
+  ];
+  harmonics.forEach(([mult,level,type])=>{
+    const osc=ctx.createOscillator();
+    const g=ctx.createGain();
+    osc.type=type;
+    osc.frequency.setValueAtTime(freq*mult,when);
+    g.gain.setValueAtTime(level,when);
+    osc.connect(g).connect(master);
+    osc.start(when);
+    osc.stop(when+1.6);
+  });
 }
+function playCurrentChord(){
+  const v=voicings[voicingIndex];
+  if(!v) return;
+  const ctx=getAudioContext();
+  if(!ctx){
+    alert('הדפדפן במכשיר הזה אינו תומך בניגון הצליל.');
+    return;
+  }
+
+  // iOS requires resume() to be called directly inside the user's tap gesture.
+  const startPlayback=()=>{
+    const t=ctx.currentTime+0.035;
+    let n=0;
+    v.frets.forEach((f,i)=>{
+      if(f>=0){
+        synthString(ctx,fretFrequency(i,f),t+n*0.075);
+        n++;
+      }
+    });
+  };
+
+  if(ctx.state==='suspended'){
+    ctx.resume().then(startPlayback).catch(()=>{});
+  } else {
+    startPlayback();
+  }
+}
+document.querySelector('#playChord').addEventListener('click',playCurrentChord);
 
 function readList(key){try{return JSON.parse(localStorage.getItem(key)||'[]')}catch{return[]}}
 function writeList(key,x){localStorage.setItem(key,JSON.stringify(x))}
