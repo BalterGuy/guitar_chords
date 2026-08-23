@@ -31,10 +31,7 @@
 
     <section id="chordPanel" class="panel chord-panel hidden">
       <div class="chord-title-row">
-        <div>
-          <div id="chordName" class="chord-name">Am</div>
-          <div id="chordMeta" class="chord-meta"></div>
-        </div>
+        <div id="chordName" class="chord-name">Am</div>
         <button id="favBtn" class="fav" type="button" aria-label="שמירה למועדפים">☆</button>
       </div>
 
@@ -42,10 +39,12 @@
         <svg id="diagram" viewBox="0 0 340 430" role="img" aria-label="דיאגרמת אקורד"></svg>
       </div>
 
+      <button id="playChord" class="play-btn" type="button" aria-label="נגן אקורד">▶&nbsp;&nbsp;נגן אקורד</button>
+
       <div class="voicing-row">
-        <button id="prevVoicing" class="nav-btn" type="button">‹ אחיזה</button>
+        <button id="prevVoicing" class="nav-btn" type="button">‹ אחיזה קודמת</button>
         <span id="voicingCounter"></span>
-        <button id="nextVoicing" class="nav-btn" type="button">אחיזה ›</button>
+        <button id="nextVoicing" class="nav-btn" type="button">אחיזה הבאה ›</button>
       </div>
 
       <div id="instructions" class="instructions"></div>
